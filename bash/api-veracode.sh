@@ -6,9 +6,9 @@
 
 # CHANGE THESE SETTINGS TO MATCH YOUR CONFIGURATION
 
-APP_ID=
-API_USERNAME=""
-API_PASSWORD=""
+#APP_ID=
+#API_USERNAME=""
+#API_PASSWORD=""
 PRESCAN_SLEEP_TIME=300
 SCAN_SLEEP_TIME=300
 
@@ -88,6 +88,31 @@ function createbuild {
 
 	# Extract build id
 	BUILD_ID=$(echo $create_build_response | sed -n 's/.* build_id=\"\([0-9]*\)\" .*/\1/p')
+}
+
+# Upload files
+function uploadfile {
+  file $1
+  echo "> uploading $file to scan $APP_ID"
+  return
+	do
+		if [[ -f "$file" ]]; then
+			echo "[+] Uploading $file"
+			local upload_file_response=`curl --compressed -u "$API_USERNAME:$API_PASSWORD" https://analysiscenter.veracode.com/api/4.0/uploadfile.do -F "app_id=$APP_ID" -F "file=@$file"`
+			validate_response "$upload_file_response"
+		fi
+	done
+
+	# Validate all files were successfully uploaded
+	for file in $UPLOAD_DIR/*
+	do
+		if [[ -f "$file" ]]; then
+			if ! [[ "$upload_file_response" =~ (\<file file_id=\"[0-9]+\" file_name=\""${file##*/}"\" file_status=\"Uploaded\"/\>) ]]; then
+				echo "[-] Error uploading $file"
+				exit 1
+			fi
+		fi
+	done
 }
 
 # Upload files
