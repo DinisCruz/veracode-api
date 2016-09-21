@@ -17,5 +17,5 @@
     export APP_ID=204659
     export VERSION="test scan"
     #veracode_createbuild
-    veracode_createbuild
+    #veracode_createbuild
 }
