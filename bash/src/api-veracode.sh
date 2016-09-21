@@ -47,6 +47,65 @@ SUBJECT="Veracode Results ($VERSION)"
 TO_ADDR=""
 FROM_ADDR=""
 
+# get apps
+
+function veracode_api_invoke {
+    local targetUrl="https://analysiscenter.veracode.com/api/5.0/getapplist.do"
+    local targetUrl="https://analysiscenter.veracode.com/api/5.0/$1.do"
+    if [[ "$2" != "" ]]; then
+        local data="--data $2"
+    fi
+    echo $targetUrl $data
+    curl --compressed -u $API_USERNAME:$API_PASSWORD $targetUrl $data
+}
+
+
+function veracode_app_list {
+    #curl --compressed -u $API_USERNAME:$API_PASSWORD https://analysiscenter.veracode.com/api/5.0/getapplist.do
+    veracode_api_invoke getapplist
+}
+
+function veracode_app_info {
+    local appId="$1"
+    #curl --compressed -u $API_USERNAME:$API_PASSWORD https://analysiscenter.veracode.com/api/5.0/getappinfo.do --data "app_id=$appId"
+    veracode_api_invoke getappinfo app_id="$appId"
+
+}
+
+function veracode_app_sandboxes {
+    local appId="$1"
+    veracode_api_invoke getsandboxlist app_id="$appId"
+    #curl --compressed -u $API_USERNAME:$API_PASSWORD https://analysiscenter.veracode.com/api/5.0/getsandboxlist.do --data "app_id=$appId"
+}
+
+
+function veracode_app_build {
+    local appId="$1"
+    local sandboxId="$2"
+    local version=`date "+%Y-%m-%d %T"`
+    veracode_api_invoke createbuild app_id="$appId"&version="$version"
+}
+
+function veracode_app_build_in_sandbox {
+    local appId="$1"
+    local sandboxId="$2"
+    local version=`date "+%Y-%m-%d %T"`
+    veracode_api_invoke createbuild app_id="$appId"&version="$version"&sandbox_id="$sandboxId"
+}
+
+function veracode_app_build_upload_file {
+    local appId="$1"
+    local file="@$2"
+    #veracode_api_invoke uploadfile "app_id=$appId -F file=@$file"
+    echo here
+    curl --compressed -u "$API_USERNAME:$API_PASSWORD" https://analysiscenter.veracode.com/api/4.0/uploadfile.do -F "app_id=$appId" -F "file=@$file"
+
+
+}
+
+
+
+#### ORIGINAL METHODS####
 # Validate HTTP response
 function validate_response {
 	local response="$1"
@@ -228,9 +287,7 @@ function email {
 	mailx -s "$SUBJECT" -a "$DETAILED_REPORT_PDF_FILE" -a "$SUMMARY_REPORT_PDF_FILE" -a "$DETAILED_REPORT_XML_FILE" -r $FROM_ADDR $TO_ADDR
 }
 
-function test {
-  echo "123" $1
-}
+
 
 #echo "Init - `date`"
 #check_state
