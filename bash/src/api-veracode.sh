@@ -27,15 +27,19 @@ function veracode_app_list {
 
 function veracode_app_info {
     local appId="$1"
-    #curl --compressed -u $API_USERNAME:$API_PASSWORD https://analysiscenter.veracode.com/api/5.0/getappinfo.do --data "app_id=$appId"
     veracode_api_invoke getappinfo app_id="$appId"
+
+}
+
+function veracode_app_create {
+    local appName="$1"
+    veracode_api_invoke createapp app_name="$appName&business_criticality=Very+High"
 
 }
 
 function veracode_app_sandboxes {
     local appId="$1"
     veracode_api_invoke getsandboxlist app_id="$appId"
-    #curl --compressed -u $API_USERNAME:$API_PASSWORD https://analysiscenter.veracode.com/api/5.0/getsandboxlist.do --data "app_id=$appId"
 }
 
 
@@ -55,7 +59,7 @@ function veracode_app_build_in_sandbox {
 
 function veracode_app_build_begin_prescan {
     local appId="$1"
-    veracode_api_invoke beginprescan "app_id=$appId&auto_scan=true"
+    veracode_api_invoke beginprescan "app_id=$appId&auto_scan=true&scan_all_nonfatal_top_level_modules=true"
 }
 
 function veracode_app_build_begin_scan {
