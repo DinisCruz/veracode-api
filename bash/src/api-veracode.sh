@@ -55,7 +55,7 @@ function veracode_app_build_in_sandbox {
 
 function veracode_app_build_begin_prescan {
     local appId="$1"
-    veracode_api_invoke beginprescan "app_id=$appId"
+    veracode_api_invoke beginprescan "app_id=$appId&auto_scan=true"
 }
 
 function veracode_app_build_begin_scan {
