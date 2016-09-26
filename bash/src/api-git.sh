@@ -1,6 +1,7 @@
+#!/bin/bash
+
 # Emails the reports
 
-#echo '--- Setting api-veracode functions'
 function git_clone {
   git clone $1 $2
 }
