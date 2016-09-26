@@ -31,11 +31,6 @@ function veracode_app_info {
 
 }
 
-function veracode_app_create {
-    local appName="$1"
-    veracode_api_invoke createapp app_name="$appName&business_criticality=Very+High"
-
-}
 
 function veracode_app_sandboxes {
     local appId="$1"
@@ -91,6 +86,11 @@ function veracode_app_build_upload_file {
     veracode_api_invoke_F uploadfile "app_id=$appId -F file=@$file"
 }
 
+function veracode_create_app {
+    local appName="$1"
+    veracode_api_invoke createapp app_name="$appName&business_criticality=Very+High"
+
+}
 
 #### ORIGINAL METHODS####
 
