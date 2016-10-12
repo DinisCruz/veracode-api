@@ -63,9 +63,9 @@ trigger_Scan
 
 ### using veracode api as REPL
 
-* install it on cmd line - ```cd ./api/bash/;. api.sh; cd ../..```
-* set veracode credentials -```export API_USERNAME=xxx.xx@xxxx.xx.xxx``` and ```export API_PASSWORD=xxxx```
-* list of current veracode apps - veracode_app_list
+* install it on cmd line: ```cd ./api/bash/;. api.sh; cd ../..```
+* set veracode credentials: ```export API_USERNAME=xxx.xx@xxxx.xx.xxx``` and ```export API_PASSWORD=xxxx```
+* list of current veracode apps: ```veracode_app_list```
 
 curent list of commands
 
