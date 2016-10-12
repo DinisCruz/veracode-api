@@ -10,7 +10,7 @@ The current version of the API is bash based, but the idea is to rewrite parts o
 ```bash
 #!/usr/bin/env bash
 
-. ./scan/api-veracode-XYZ.sh
+. ./scan/api-veracode-xyz.sh
 
 PROJECT=xxxxx
 REPO_NAME=aaaa-bbbb-ccc
@@ -34,6 +34,32 @@ build_Files
 zip_Targets
 trigger_Scan
 ```
+
+* for NodeJS project
+
+```bash
+
+#!/usr/bin/env bash
+
+. ./scan/api-veracode-xyz.sh
+
+PROJECT=xxx
+REPO_NAME=aaaaa
+APP_ID=12345
+
+
+function zip_Targets {
+    rm $TARGET_FILE
+    zip -r $TARGET_FILE server.js
+    zip -r $TARGET_FILE app server shared
+}
+
+setup
+clone
+zip_Targets
+trigger_Scan
+```
+
 
 ### using veracode api as REPL
 
