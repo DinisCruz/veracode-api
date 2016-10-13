@@ -2,32 +2,28 @@
 
 # command line api
 
-function veracode_api_invoke {
-    local targetUrl="https://analysiscenter.veracode.com/api/5.0/$1.do"
-    if [[ "$2" != "" ]]; then
-        local data="--data $2"
-    fi
-    #echo $targetUrl $data
-    echo $(curl --silent --compressed -u $API_USERNAME:$API_PASSWORD $targetUrl $data)
+function veracode-app-id {
+    local app_Name=$1
+    local data="$(veracode-app-list)"                                               # get data using curl
+    #local formated_Data=$(format_xml "$data")                                       # format it so that grep works
+    #get_value_from_string "$formated_Data" "$app_Name" 2                            # call get_value_from_string method
+    get_value_from_string "$data" "$app_Name" 2                            # call get_value_from_string method
 }
 
-function veracode_api_invoke_F {
-    local targetUrl="https://analysiscenter.veracode.com/api/5.0/$1.do"
-    if [[ "$2" != "" ]]; then
-        local data="-F $2"
-    fi
-    #echo $targetUrl $data
-    curl --compressed -u $API_USERNAME:$API_PASSWORD $targetUrl $data
- }
+function veracode-app-delete {
+    local appId="$1"
+    veracode_api_invoke deleteapp app_id="$appId"
 
-function veracode_app_list {
-    veracode_api_invoke getapplist
 }
 
-function veracode_app_info {
+
+function veracode-app-info {
     local appId="$1"
     veracode_api_invoke getappinfo app_id="$appId"
+}
 
+function veracode-app-list {
+    veracode_api_invoke getapplist
 }
 
 
@@ -90,3 +86,11 @@ function veracode_create_app {
     veracode_api_invoke createapp app_name="$appName&business_criticality=Very+High"
 
 }
+
+
+
+
+# similar methods with different signatures (the idea is to make the method name as intuitive as possible)
+
+function veracode-delete-app { veracode-app-delete $1; }
+function veracode-apps       { veracode-app-list     ; }

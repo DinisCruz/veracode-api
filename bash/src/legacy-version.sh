@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 #### ORIGINAL METHODS####
 
 # based on code from https://github.com/aparsons/Veracode/blob/master/shell/veracode.sh
