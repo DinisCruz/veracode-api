@@ -34,6 +34,8 @@ function get-value-from-string {
                                                                                     # into grep which will pick the lines with $selector                                                                                   # split strings and get value in $ position
 }
 
+### Formatting output utils
+
 function format-xml {
     local data="$1"
     local formated_Data=$(echo "$data" | xmllint --format --noent --nonet -)        # use xmllint to format xml content so that grep filter is easier to write
@@ -63,4 +65,28 @@ function format-veracode-app-list {
     echo -------------------------------------------------------------------
     echo "$(format-xml "$raw_xml")" | grep "<app " | awk -F"\"" '{ printf "%-10s %-30s %-30s \n" , $2,$4,$6 }' ;
     echo
+}
+
+### bash utils
+
+function create_folder {
+    local folder=$1
+    if [ ! -d "$folder" ]; then
+          mkdir $folder
+    fi
+}
+
+function delete_file {
+    local file=$1
+    if [ ! -f "$file" ]; then
+          rm $file
+    fi
+}
+
+function goto_folder {
+    local folder=$1
+    if [ ! -d "$folder" ]; then
+          mkdir $folder
+    fi
+    cd    $folder
 }
