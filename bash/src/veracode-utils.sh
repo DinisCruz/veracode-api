@@ -49,7 +49,7 @@ function format-veracode-app-create {
 
 function format-veracode-app-delete {
     local data="$1"
-    if [[ $data =~ .*\<error\>Access.denied.\</error\>.* ]] ; then
+    if [[ $data =~ .*\<error\>.*\</error\>.* ]] ; then
         echo "0 (failed to delete)"
     else
         echo "1 (delete ok)"
