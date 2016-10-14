@@ -67,17 +67,28 @@ trigger_Scan
 * set veracode credentials: ```export API_USERNAME=xxx.xx@xxxx.xx.xxx``` and ```export API_PASSWORD=xxxx```
 * list of current veracode apps: ```veracode-app-list```
 
-curent list of commands
+current list of commands
 
 ```
-veracode-api-invoke                 veracode-app-build-begin-prescan    
+veracode-api-invoke-v5                 veracode-app-build-begin-prescan
 veracode-app-build-info             veracode-app-info                   
 veracode-create-app                 veracode-api-invoke-F               
 veracode-app-build-begin-scan       veracode-app-build-prescan-results  
 veracode-app-list                   veracode-app-build                  
-veracode-app-build-in-sandbox       veracode-app-build-upload-file      
+veracode-app-build-in-sandbox       veracode-app-upload-file
 veracode-app-sandboxes             
 ```
+
+**Common actions/workflows**:
+
+* get list of apps: ```veracode-apps```
+* format result
+    * get app info: ```format-xml "$(veracode-app-info {app_id})"```
+    * invoke method directly:
+        * ```format-xml "$(veracode-api-invoke-v5 getprescanresults app_id={app_id})"```
+        * ```format-xml "$(veracode-api-invoke-v5 getbuildlist app_id={app_id})"```
+        * ```format-xml "$(veracode-api-invoke-v5 getbuilddetails app_id={app_id})"```
+        * ```format-xml "$(veracode-api-invoke-v4 getappbuilds)"```
 
 
 ### Resources

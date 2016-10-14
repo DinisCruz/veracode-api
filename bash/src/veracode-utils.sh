@@ -1,16 +1,18 @@
 #!/bin/bash
 
+function veracode-api-invoke-v4 { veracode-api-invoke 4.0 $1 $2 ; }
+function veracode-api-invoke-v5 { veracode-api-invoke 5.0 $1 $2 ;}
 
 function veracode-api-invoke {
-    local targetUrl="https://analysiscenter.veracode.com/api/5.0/$1.do"
-    if [[ "$2" != "" ]]; then
-        local data="--data $2"
+    local targetUrl="https://analysiscenter.veracode.com/api/$1/$2.do"
+    if [[ "$3" != "" ]]; then
+        local data="--data $3"
     fi
     #echo $targetUrl $data
     echo $(curl --silent --compressed -u $API_USERNAME:$API_PASSWORD $targetUrl $data)
 }
 
-function veracode-api-invoke-F {
+function veracode-api-invoke-v5-F {
     local targetUrl="https://analysiscenter.veracode.com/api/5.0/$1.do"
     if [[ "$2" != "" ]]; then
         local data="-F $2"
@@ -61,10 +63,25 @@ function format-veracode-app-delete {
 function format-veracode-app-list {
     raw_xml=$1
     echo
-    echo "App id     App Name                       Policy Updated Date"
+    echo "App id     App Name                       Last Scan"
     echo -------------------------------------------------------------------
     echo "$(format-xml "$raw_xml")" | grep "<app " | awk -F"\"" '{ printf "%-10s %-30s %-30s \n" , $2,$4,$6 }' ;
     echo
+}
+
+function veracode-format-file-list {
+    local raw_xml=$1
+    local formatted_xml=$(format-xml "$raw_xml")
+
+    build_id=$(echo "$formatted_xml" | grep "<filelist " | sed  -n 's/.*build_id="\(.*\)">*/\1/p' )
+    app_id=$(echo "$formatted_xml"   | grep "<filelist " | sed -n 's/.*app_id="\([^"]*\).*/\1/p'  )
+    echo
+    echo "   Veracode file list for build $build_id in app $app_id       "
+    echo -------------------------------------------------------------------
+    echo "File Id         Name                           Status"
+    echo -------------------------------------------------------------------
+    echo "$(format-xml "$raw_xml")" | grep "<file " | awk -F"\"" '{ printf "%-15s %-30s %-30s \n" , $2,$4,$6 }' ;
+
 }
 
 ### bash utils

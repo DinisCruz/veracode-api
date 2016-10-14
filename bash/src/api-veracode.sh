@@ -2,22 +2,33 @@
 
 # command line api
 
+function veracode-app-builds {
+    echo $(veracode-api-invoke-v4 getappbuilds)
+}
+
 function veracode-app-create {
     local appName="$1"
-    raw_xml=$(veracode-api-invoke createapp app_name="$appName&business_criticality=Very+High")
+    raw_xml=$(veracode-api-invoke-v5 createapp app_name="$appName&business_criticality=Very+High")
     format-veracode-app-create "$raw_xml"
 }
 
 function veracode-app-delete {
-    local appId="$1"
+    local id_or_name="$1"
 
-    raw_xml=$(veracode-api-invoke deleteapp app_id="$appId")
+    local raw_xml=$(veracode-api-invoke-v5 deleteapp app_id="$id_or_name")                               # try do delete as if $id_or_name is an id
+
+    if [[ $raw_xml =~ .*\<error\>No.app_id.parameter.specified\</error\>.* ]] ; then            # if we get an <error>No app_id parameter specified</error> error message
+        local app_id=$(veracode-app-id "$id_or_name")                                                 # try to resolve the name to an id
+        raw_xml=$(veracode-api-invoke-v5 deleteapp app_id="$app_id")                               # try to delete is with the resolved id
+    fi
     format-veracode-app-delete "$raw_xml"
+
+
 }
 
 function veracode-app-id {
     local app_Name=$1
-    local data="$(veracode-api-invoke getapplist)"                                               # get data using curl
+    local data="$(veracode-api-invoke-v5 getapplist)"                                               # get data using curl
     get-value-from-string "$data" "$app_Name" 2                             # call get-value-from-string method
 }
 
@@ -34,18 +45,18 @@ function veracode-app-id-create-if-required {
 
 function veracode-app-info {
     local appId="$1"
-    veracode-api-invoke getappinfo app_id="$appId"
+    veracode-api-invoke-v5 getappinfo app_id="$appId"
 }
 
 function veracode-app-list {
-    raw_xml=$(veracode-api-invoke getapplist)
+    raw_xml=$(veracode-api-invoke-v5 getapplist)
     format-veracode-app-list "$raw_xml"
 }
 
 
 function veracode-app-sandboxes {
     local appId="$1"
-    veracode-api-invoke getsandboxlist app_id="$appId"
+    veracode-api-invoke-v5 getsandboxlist app_id="$appId"
 }
 
 
@@ -53,19 +64,19 @@ function veracode-app-build {
     local appId="$1"
     local sandboxId="$2"
     local version=`date "+%Y-%m-%d %T"`
-    veracode-api-invoke createbuild app_id="$appId"&version="$version"
+    veracode-api-invoke-v5 createbuild app_id="$appId"&version="$version"
 }
 
 function veracode-app-build-in-sandbox {
     local appId="$1"
     local sandboxId="$2"
     local version=`date "+%Y-%m-%d %T"`
-    veracode-api-invoke createbuild app_id="$appId"&version="$version"&sandbox_id="$sandboxId"
+    veracode-api-invoke-v5 createbuild app_id="$appId"&version="$version"&sandbox_id="$sandboxId"
 }
 
 function veracode-app-build-begin-prescan {
     local appId="$1"
-    veracode-api-invoke beginprescan "app_id=$appId&auto_scan=true&scan_all_nonfatal_top_level_modules=true"
+    veracode-api-invoke-v5 beginprescan "app_id=$appId&auto_scan=true&scan_all_nonfatal_top_level_modules=true"
 }
 
 function veracode-app-build-begin-scan {
@@ -77,24 +88,36 @@ function veracode-app-build-begin-scan {
     fi
 
     #local all_modules="scan_all_top_level_modules=true"
-    veracode-api-invoke beginscan "app_id=$appId&$target"
+    veracode-api-invoke-v5 beginscan "app_id=$appId&$target"
+}
+
+function veracode-app-build-delete {
+    local appId="$1"
+    veracode-api-invoke-v5 deletebuild "app_id=$appId"
 }
 
 
 function veracode-app-build-info {
     local appId="$1"
-    veracode-api-invoke getbuildinfo "app_id=$appId"
+    veracode-api-invoke-v5 getbuildinfo "app_id=$appId"
+}
+
+function veracode-app-build-files {
+    local appId="$1"
+    raw_xml=$(veracode-api-invoke-v5 getfilelist "app_id=$appId")
+    veracode-format-file-list "$raw_xml"
 }
 
 function veracode-app-build-prescan-results {
     local appId="$1"
-    veracode-api-invoke getprescanresults "app_id=$appId"
+    veracode-api-invoke-v5 getprescanresults "app_id=$appId"
 }
 
-function veracode-app-build-upload-file {
+function veracode-app-upload-file {
     local appId="$1"
     local file="$2"
-    veracode-api-invoke-F uploadfile "app_id=$appId -F file=@$file"
+    raw_xml=$(veracode-api-invoke-v5-F uploadfile "app_id=$appId -F file=@$file")
+    veracode-format-file-list "$raw_xml"
 }
 
 
@@ -102,7 +125,8 @@ function veracode-app-build-upload-file {
 
 # similar methods with different signatures (the idea is to make the method name as intuitive as possible)
 
-function veracode-apps       { veracode-app-list     ; }
-function veracode-create-app { veracode-app-create $1; }
-function veracode-delete-app { veracode-app-delete $1; }
-function veracode-list       { veracode-app-list     ; }
+function veracode-apps         { veracode-app-list            ; }
+function veracode-create-app   { veracode-app-create        $1; }
+function veracode-delete-app   { veracode-app-delete        $1; }
+function veracode-delete-build { veracode-app-build-delete  $1; }
+function veracode-list         { veracode-app-list            ; }
