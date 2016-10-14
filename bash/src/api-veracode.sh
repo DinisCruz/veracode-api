@@ -3,7 +3,9 @@
 # command line api
 
 function veracode-app-builds {
-    echo $(veracode-api-invoke-v4 getappbuilds)
+    raw_xml=$(veracode-api-invoke-v4 getappbuilds)
+
+    format-veracode-app-builds "$raw_xml"
 }
 
 function veracode-app-create {
@@ -76,7 +78,9 @@ function veracode-app-build-in-sandbox {
 
 function veracode-app-build-begin-prescan {
     local appId="$1"
-    veracode-api-invoke-v5 beginprescan "app_id=$appId&auto_scan=true&scan_all_nonfatal_top_level_modules=true"
+    raw_xml=$(veracode-api-invoke-v5 beginprescan "app_id=$appId&auto_scan=true&scan_all_nonfatal_top_level_modules=true")
+    #raw_xml=$(veracode-api-invoke-v5 getbuildinfo "app_id=$appId")
+    format-veracode-app-build-info "$raw_xml"
 }
 
 function veracode-app-build-begin-scan {
@@ -99,7 +103,8 @@ function veracode-app-build-delete {
 
 function veracode-app-build-info {
     local appId="$1"
-    veracode-api-invoke-v5 getbuildinfo "app_id=$appId"
+    raw_xml=$(veracode-api-invoke-v5 getbuildinfo "app_id=$appId")
+    format-veracode-app-build-info "$raw_xml"
 }
 
 function veracode-app-build-files {

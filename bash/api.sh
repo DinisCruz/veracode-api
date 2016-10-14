@@ -3,5 +3,6 @@
 . ./src/api-svn.sh
 
 . ./src/api-veracode.sh
-. ./src/veracode-utils.sh
+. ./src/veracode-format.sh
 . ./src/veracode-tools.sh
+. ./src/veracode-utils.sh
