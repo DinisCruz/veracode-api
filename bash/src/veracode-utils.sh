@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-function veracode_api_invoke {
+function veracode-api-invoke {
     local targetUrl="https://analysiscenter.veracode.com/api/5.0/$1.do"
     if [[ "$2" != "" ]]; then
         local data="--data $2"
@@ -10,7 +10,7 @@ function veracode_api_invoke {
     echo $(curl --silent --compressed -u $API_USERNAME:$API_PASSWORD $targetUrl $data)
 }
 
-function veracode_api_invoke_F {
+function veracode-api-invoke-F {
     local targetUrl="https://analysiscenter.veracode.com/api/5.0/$1.do"
     if [[ "$2" != "" ]]; then
         local data="-F $2"
@@ -19,21 +19,48 @@ function veracode_api_invoke_F {
     curl --compressed -u $API_USERNAME:$API_PASSWORD $targetUrl $data
  }
 
-function get_value_from_string {
+function get-value-from-string {
     local data=$1                                                                   # text to search
-    local selector=$2                                                               # value to find
+    local selector="\"$2\""                                                         # value to find
     local position=$3                                                               # position to return
 
-    local formated_Data=$(format_xml "$data")                                       # format it so that grep works
+    local formated_Data=$(format-xml "$data")                                       # format it so that grep works
 
+    #echo "$formated_Data"
+    #echo "$selector"
     echo $(echo "$formated_Data"  | \
-          grep $selector          | \
+          grep "$selector"        | \
           awk -F"\"" "{print \$$position}")                                         # feed value of data
                                                                                     # into grep which will pick the lines with $selector                                                                                   # split strings and get value in $ position
 }
 
-function format_xml {
+function format-xml {
     local data="$1"
     local formated_Data=$(echo "$data" | xmllint --format --noent --nonet -)        # use xmllint to format xml content so that grep filter is easier to write
     echo "$formated_Data"
+}
+
+
+function format-veracode-app-create {
+    raw_xml=$1
+    app_id=$( echo $raw_xml | sed  -n 's/.*app_id="\(.*\)".app_name.*/\1/p' )
+    echo $app_id
+}
+
+function format-veracode-app-delete {
+    local data="$1"
+    if [[ $data =~ .*\<error\>Access.denied.\</error\>.* ]] ; then
+        echo "0 (failed to delete)"
+    else
+        echo "1 (delete ok)"
+    fi
+}
+
+function format-veracode-app-list {
+    raw_xml=$1
+    echo
+    echo "App id     App Name                       Policy Updated Date"
+    echo -------------------------------------------------------------------
+    echo "$(format-xml "$raw_xml")" | grep "<app " | awk -F"\"" '{ printf "%-10s %-30s %-30s \n" , $2,$4,$6 }' ;
+    echo
 }

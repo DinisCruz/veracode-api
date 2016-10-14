@@ -2,12 +2,12 @@
 
 # Emails the reports
 
-function git_clone {
+function git-clone {
   git clone $1 $2
 }
 
 # This will clone if the repo doesn't exist, or pull it if it exists
-function git_clone_or_pull {
+function git-clone-or-pull {
   if ! [[ -d "$2" ]]; then
     echo "> Cloning $1 into folder $2"
     git clone $1 $2
@@ -21,6 +21,6 @@ function git_clone_or_pull {
   fi
 }
 
-function git_version {
+function git-version {
   git version
 }

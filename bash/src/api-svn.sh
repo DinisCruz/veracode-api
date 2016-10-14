@@ -2,12 +2,12 @@
 
 # Emails the reports
 
-function svn_checkout {
+function svn-checkout {
   svn checkout $1 $2
 }
 
 # This will checkout if the repo doesn't exist, or update it if it exists
-function svn_checkout_or_update {
+function svn-checkout-or-update {
   if ! [[ -d "$2" ]]; then
     echo "> Checking $1 into folder $2"
     svn checkout  $1 $2
@@ -21,6 +21,6 @@ function svn_checkout_or_update {
   fi
 }
 
-function svn_version {
+function svn-version {
   svn --version
 }

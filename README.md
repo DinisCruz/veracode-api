@@ -65,18 +65,18 @@ trigger_Scan
 
 * install it on cmd line: ```cd ./api/bash/;. api.sh; cd ../..```
 * set veracode credentials: ```export API_USERNAME=xxx.xx@xxxx.xx.xxx``` and ```export API_PASSWORD=xxxx```
-* list of current veracode apps: ```veracode_app_list```
+* list of current veracode apps: ```veracode-app-list```
 
 curent list of commands
 
 ```
-veracode_api_invoke                 veracode_app_build_begin_prescan    
-veracode_app_build_info             veracode_app_info                   
-veracode_create_app                 veracode_api_invoke_F               
-veracode_app_build_begin_scan       veracode_app_build_prescan_results  
-veracode_app_list                   veracode_app_build                  
-veracode_app_build_in_sandbox       veracode_app_build_upload_file      
-veracode_app_sandboxes             
+veracode-api-invoke                 veracode-app-build-begin-prescan    
+veracode-app-build-info             veracode-app-info                   
+veracode-create-app                 veracode-api-invoke-F               
+veracode-app-build-begin-scan       veracode-app-build-prescan-results  
+veracode-app-list                   veracode-app-build                  
+veracode-app-build-in-sandbox       veracode-app-build-upload-file      
+veracode-app-sandboxes             
 ```
 
 
