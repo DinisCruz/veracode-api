@@ -43,6 +43,13 @@ function format-application-build {
     #echo $data
 }
 
+function format-veracode-app-build-id {
+    raw_xml=$1
+    local formatted_xml=$(format-xml "$raw_xml")
+    build_id=$(attribute-value "$formatted_xml" "buildinfo" "build_id")
+    echo "$build_id"
+}
+
 function format-veracode-app-build-info {
     raw_xml=$1
     local formatted_xml=$(format-xml "$raw_xml")

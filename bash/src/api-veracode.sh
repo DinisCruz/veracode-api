@@ -100,6 +100,20 @@ function veracode-app-build-delete {
     veracode-api-invoke-v5 deletebuild "app_id=$appId"
 }
 
+function veracode-download-pdf {
+    local app_name="$1"
+
+    local app_id=$(veracode-app-id "$app_name")
+    local build_info=$(veracode-api-invoke-v5 getbuildinfo "app_id=$app_id")
+    local build_id=$(format-veracode-app-build-id "$build_info")
+    local target_folder="./reports/${app_name}"
+    local target_file="$target_folder/$build_id.pdf"
+    echo "Downloading report for app $app_Name with id $app_Id with build id $build_id , to location $target_file"
+
+    mkdir -p "$target_folder"
+    veracode-api-download "2.0" "detailedreportpdf" "build_id=$build_id" "$target_file"
+}
+
 
 function veracode-app-build-info {
     local appId="$1"
@@ -130,7 +144,7 @@ function veracode-app-upload-file {
 
 # similar methods with different signatures (the idea is to make the method name as intuitive as possible)
 
-function veracode-apps         { veracode-app-list            ; }
+function veracode-apps         { veracode-app-builds          ; }
 function veracode-create-app   { veracode-app-create        $1; }
 function veracode-delete-app   { veracode-app-delete        $1; }
 function veracode-delete-build { veracode-app-build-delete  $1; }

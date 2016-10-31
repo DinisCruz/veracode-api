@@ -1,5 +1,6 @@
 #!/bin/bash
 
+function veracode-api-invoke-v2 { veracode-api-invoke 2.0 $1 $2 ; }
 function veracode-api-invoke-v4 { veracode-api-invoke 4.0 $1 $2 ; }
 function veracode-api-invoke-v5 { veracode-api-invoke 5.0 $1 $2 ;}
 
@@ -20,6 +21,16 @@ function veracode-api-invoke-v5-F {
     #echo $targetUrl $data
     curl --compressed -u $API_USERNAME:$API_PASSWORD $targetUrl $data
  }
+
+function veracode-api-download {
+    local target_Url="https://analysiscenter.veracode.com/api/$1/$2.do?$3"
+    local target_File=$4
+    echo
+    echo "Downloading $2 to $target_File"
+    echo $(curl --compressed -u $API_USERNAME:$API_PASSWORD -o $target_File $target_Url )
+    echo
+
+}
 
 function get-value-from-string {
     local data=$1                                                                   # text to search
