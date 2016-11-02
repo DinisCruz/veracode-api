@@ -115,6 +115,12 @@ function format-veracode-app-list {
     echo
 }
 
+function format-veracode-app-names {
+    raw_xml=$1
+    echo "$(format-xml "$raw_xml")" | grep "<app " | awk -F"\"" '{ printf "%s\n" , $4 }' ;
+    echo
+}
+
 function veracode-format-file-list {
     local raw_xml=$1
     local formatted_xml=$(format-xml "$raw_xml")

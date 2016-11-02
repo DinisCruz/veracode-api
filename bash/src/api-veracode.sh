@@ -55,6 +55,10 @@ function veracode-app-list {
     format-veracode-app-list "$raw_xml"
 }
 
+function veracode-app-names {
+    raw_xml=$(veracode-api-invoke-v5 getapplist)
+    format-veracode-app-names "$raw_xml"
+}
 
 function veracode-app-sandboxes {
     local appId="$1"
@@ -79,7 +83,7 @@ function veracode-app-build-in-sandbox {
 function veracode-app-build-begin-prescan {
     local appId="$1"
     raw_xml=$(veracode-api-invoke-v5 beginprescan "app_id=$appId&auto_scan=true&scan_all_nonfatal_top_level_modules=true")
-    #raw_xml=$(veracode-api-invoke-v5 getbuildinfo "app_id=$appId")
+
     format-veracode-app-build-info "$raw_xml"
 }
 
@@ -101,29 +105,12 @@ function veracode-app-build-delete {
 }
 
 function veracode-download {
-
-    local command=$1
-    local app_name="$2"
-    local file_suffix="$3"
-    local app_id="$4"
-    local build_id="$5"
-
-    local target_folder="./reports/${app_name}/$build_id"
-    local target_file="$target_folder/$file_suffix"
-    local latest_file="./reports/${app_name}/last_build_id"
-    echo "Downloading $command for app $app_name with id $app_id with build id $build_id , to location $target_file"
-
-    mkdir -p "$target_folder"
-    veracode-api-download "2.0" "$command" "build_id=$build_id" "$target_file"
-
-    if [[ $file_suffix =~ ".xml" ]]; then                                       # fix xml formatting
-        echo "$(format-xml "$(cat  $target_file)")" > $target_file
-    fi
-    echo $build_id > $latest_file
-
+    local app_name="$1"
+    veracode-download-all-files $app_name
+    veracode-scan-save-all_call-stacks $app_name
 }
 
-function veracode-download-all {
+function veracode-download-all-files {
     local app_name="$1"
     local app_id=$(veracode-app-id "$app_name")
     local delete_if_download="$2"
@@ -135,12 +122,15 @@ function veracode-download-all {
         local build_info=$(veracode-api-invoke-v5 getbuildinfo "app_id=$app_id")
         local build_id=$(format-veracode-app-build-id "$build_info")
 
+        echo "Downloading report files for: app_name = $app_name ; app_id = $app_id ; build_id  = $build_id"
+        echo
         veracode-download-pdf-detailed  "$app_name" "$app_id" "$build_id"
         veracode-download-pdf-summary   "$app_name" "$app_id" "$build_id"
         veracode-download-xml-detailed  "$app_name" "$app_id" "$build_id"
         veracode-download-xml-summary   "$app_name" "$app_id" "$build_id"
-
         #veracode-download-pdf-3rd-party "$1"
+        echo
+
 
         if [[ "$delete_if_download" == "true" ]]; then
             echo "Deleting application $app_name with $app_id"
@@ -150,19 +140,44 @@ function veracode-download-all {
 
 }
 
-function veracode-download-pdf-detailed  {     veracode-download detailedreportpdf    "$1" "detailed.pdf"  $2 $3 ; }
-function veracode-download-pdf-summary   {     veracode-download summaryreportpdf     "$1" "summary.pdf"   $2 $3 ; }
-function veracode-download-pdf-3rd-party {     veracode-download thirdpartyreportpdf  "$1" "3rd-party.pdf" $2 $3 ; }
-function veracode-download-xml-detailed  {     veracode-download detailedreport       "$1" "detailed.xml"  $2 $3 ; }
-function veracode-download-xml-summary   {     veracode-download summaryreport        "$1" "summary.xml"   $2 $3 ; }
+function veracode-download-file {
+
+    local command=$1
+    local app_name="$2"
+    local file_suffix="$3"
+    local app_id="$4"
+    local build_id="$5"
+
+    local target_folder="./reports/${app_name}/$build_id"
+    local target_file="$target_folder/$file_suffix"
+    local latest_file="./reports/${app_name}/last_build_id"
+    echo "     - $command to location $target_file"
+
+    mkdir -p "$target_folder"
+    veracode-api-download "2.0" "$command" "build_id=$build_id" "$target_file"
+
+    if [[ $file_suffix =~ ".xml" ]]; then                                       # fix xml formatting
+        echo "$(format-xml "$(cat  $target_file)")" > $target_file
+    fi
+    echo $build_id > $latest_file
+
+}
+
+function veracode-download-pdf-detailed  {     veracode-download-file detailedreportpdf    "$1" "detailed.pdf"  $2 $3 ; }
+function veracode-download-pdf-summary   {     veracode-download-file summaryreportpdf     "$1" "summary.pdf"   $2 $3 ; }
+function veracode-download-pdf-3rd-party {     veracode-download-file thirdpartyreportpdf  "$1" "3rd-party.pdf" $2 $3 ; }
+function veracode-download-xml-detailed  {     veracode-download-file detailedreport       "$1" "detailed.xml"  $2 $3 ; }
+function veracode-download-xml-summary   {     veracode-download-file summaryreport        "$1" "summary.xml"   $2 $3 ; }
 
 
 
 function veracode-app-build-info {
     local appId="$1"
     raw_xml=$(veracode-api-invoke-v5 getbuildinfo "app_id=$appId")
+
     format-veracode-app-build-info "$raw_xml"
 }
+
 
 function veracode-app-build-files {
     local appId="$1"
@@ -173,6 +188,31 @@ function veracode-app-build-files {
 function veracode-app-build-prescan-results {
     local appId="$1"
     veracode-api-invoke-v5 getprescanresults "app_id=$appId"
+}
+
+function veracode-app-build-status {
+    local appId="$1"
+    raw_xml=$(veracode-api-invoke-v5 getbuildinfo "app_id=$appId")
+
+    local formatted_xml=$(format-xml "$raw_xml")
+    status=$(attribute-value "$formatted_xml" "analysis_unit" "status")
+    echo "$status"
+}
+
+function veracode-app-build-status-all {
+    local all_apps=$(veracode-apps)
+    # this should be in the veracode-format.sh but the results take some time to load so it is better to have it showing one line at the time
+    echo "App id     App Name                       Scan status"
+    echo -------------------------------------------------------------------
+    for app_name in $all_apps;
+    do
+        local app_id=$(veracode-app-id "$app_name")
+        if [[ "$app_id" != "" ]]; then
+            local app_status=$(veracode-app-build-status $app_id)
+            printf "%-10s %-30s %-30s \n" "$app_id" "$app_name" "$app_status"
+        fi
+    done
+    echo
 }
 
 function veracode-app-upload-file {
@@ -186,12 +226,13 @@ function veracode-app-upload-file {
 function veracode-scan-call-stack {
     local build_id="$1"
     local flaw_id="$2"
+    echo "build_id=$build_id&flaw_id=$flaw_id"./
     raw_xml=$(veracode-api-invoke-v4 getcallstacks "build_id=$build_id&flaw_id=$flaw_id")
     echo "$(format-xml "$raw_xml")"
 }
 
 function veracode-scan-save-call-stack {
-    local build_name="$1"
+    local app_name="$1"
     local build_id=$(veracode-scan-last-build-id "$1")
     local flaw_id="$2"
     local raw_xml=$(veracode-scan-call-stack $build_id $flaw_id)
@@ -202,10 +243,26 @@ function veracode-scan-save-call-stack {
         local target_folder=local target_folder="./reports/${app_name}/$build_id/call-stacks"
         local target_file="$target_folder/$flaw_id.xml"
         mkdir -p $target_folder
-        echo $target_file
-        echo $(format-xml "$raw_xml") > $target_file
-        echo "saved flaw_id $flaw_id to $target_file"
+        echo "$(format-xml "$raw_xml")" > $target_file
+        echo "     * saved call-stack with flaw_id $flaw_id to $target_file"
     fi
+}
+
+function veracode-scan-save-all_call-stacks {
+    local app_name="$1"
+    local total_flaws=$(veracode-scan-total-flaws $app_name)
+    echo "Downloading call-stacks"
+    echo
+    if [[ "$total_flaws" == "0" ]]; then
+        echo "  - no flaws to download"
+    else
+        echo "  - downloading $total_flaws call stacks from $app_name"
+        for i in `seq 1 $total_flaws`;
+        do
+            veracode-scan-save-call-stack $app_name $i
+        done
+    fi
+    echo
 }
 
 function veracode-scan-last-build-id {
@@ -229,9 +286,12 @@ function veracode-scan-total-flaws {
 }
 # similar methods with different signatures (the idea is to make the method name as intuitive as possible)
 
-function veracode-builds       { veracode-app-builds          ; }
-function veracode-create-app   { veracode-app-create        $1; }
-function veracode-delete-app   { veracode-app-delete        $1; }
-function veracode-delete-build { veracode-app-build-delete  $1; }
-function veracode-list         { veracode-app-list            ; }
-function veracode-status       { veracode-app-build-info    $1; }
+function veracode-apps         { veracode-app-names               ; }
+function veracode-builds       { veracode-app-builds              ; }
+function veracode-create-app   { veracode-app-create            $1; }
+function veracode-delete-app   { veracode-app-delete            $1; }
+function veracode-delete-build { veracode-app-build-delete      $1; }
+function veracode-list         { veracode-app-list                ; }
+function veracode-status       { veracode-app-build-status      $1; }
+function veracode-status-all   { veracode-app-build-status-all    ; }
+
