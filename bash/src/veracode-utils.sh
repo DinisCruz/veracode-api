@@ -6,9 +6,11 @@ function veracode-api-invoke-v5 { veracode-api-invoke 5.0 $1 $2 ;}
 
 function veracode-api-invoke {
     local targetUrl="https://analysiscenter.veracode.com/api/$1/$2.do"
+    local data=""
     if [[ "$3" != "" ]]; then
-        local data="--data $3"
+        data="--data $3"
     fi
+    #echo
     #echo $targetUrl $data
     echo $(curl --silent --compressed -u $API_USERNAME:$API_PASSWORD $targetUrl $data)
 }
@@ -25,11 +27,9 @@ function veracode-api-invoke-v5-F {
 function veracode-api-download {
     local target_Url="https://analysiscenter.veracode.com/api/$1/$2.do?$3"
     local target_File=$4
-    echo
-    echo "Downloading $2 to $target_File"
-    echo $(curl --compressed -u $API_USERNAME:$API_PASSWORD -o $target_File $target_Url )
-    echo
 
+    #echo "Downloading $2 to $target_File"
+    curl --silent --compressed -u $API_USERNAME:$API_PASSWORD -o $target_File $target_Url
 }
 
 function get-value-from-string {
