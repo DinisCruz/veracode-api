@@ -45,6 +45,11 @@ function veracode-app-id-create-if-required {
     fi
 }
 
+function veracode-app-ids {
+    raw_xml=$(veracode-api-invoke-v5 getapplist)
+    format-veracode-app-ids "$raw_xml"
+}
+
 function veracode-app-info {
     local appId="$1"
     veracode-api-invoke-v5 getappinfo app_id="$appId"
@@ -59,6 +64,7 @@ function veracode-app-names {
     raw_xml=$(veracode-api-invoke-v5 getapplist)
     format-veracode-app-names "$raw_xml"
 }
+
 
 function veracode-app-sandboxes {
     local appId="$1"
@@ -106,37 +112,63 @@ function veracode-app-build-delete {
 
 function veracode-download {
     local app_name="$1"
-    veracode-download-all-files $app_name
-    veracode-scan-save-all_call-stacks $app_name
-}
+    delete_after_download="$2"
 
-function veracode-download-all-files {
-    local app_name="$1"
     local app_id=$(veracode-app-id "$app_name")
-    local delete_if_download="$2"
 
     if [[ "$app_id" == "" ]]; then
         echo "Error: could not resolve app with name $app_name"
         echo
     else
-        local build_info=$(veracode-api-invoke-v5 getbuildinfo "app_id=$app_id")
-        local build_id=$(format-veracode-app-build-id "$build_info")
+        veracode-download-all-files $app_name
+        veracode-scan-save-all_call-stacks $app_name
 
-        echo "Downloading report files for: app_name = $app_name ; app_id = $app_id ; build_id  = $build_id"
-        echo
-        veracode-download-pdf-detailed  "$app_name" "$app_id" "$build_id"
-        veracode-download-pdf-summary   "$app_name" "$app_id" "$build_id"
-        veracode-download-xml-detailed  "$app_name" "$app_id" "$build_id"
-        veracode-download-xml-summary   "$app_name" "$app_id" "$build_id"
-        #veracode-download-pdf-3rd-party "$1"
-        echo
-
-
-        if [[ "$delete_if_download" == "true" ]]; then
+        if [[ "$delete_after_download" == "delete" ]]; then
             echo "Deleting application $app_name with $app_id"
             veracode-delete-app $app_id
         fi
     fi
+}
+
+function veracode-download-all-completed {
+    delete_after_download="$1"
+    local all_apps=$(veracode-apps)
+    for app_name in $all_apps;
+    do
+        echo "---------------------------------------------"
+        echo "   * processing app: $app_name"
+        local app_id=$(veracode-app-id "$app_name")
+        echo "   * app_id: $app_id"
+        if [[ "$app_id" != "" ]]; then
+            local app_status=$(veracode-app-build-status $app_id)
+            echo "   * current status: $app_status"
+            if [[ "$app_status" == "Results Ready" ]]; then
+                echo
+                veracode-download $app_name $delete_after_download
+                echo
+            else
+               echo "   * skipping due to status being $app_status"
+            fi
+        fi
+    done
+
+}
+
+function veracode-download-all-files {
+    local app_name="$1"
+    local app_id=$(veracode-app-id "$app_name")
+
+    local build_info=$(veracode-api-invoke-v5 getbuildinfo "app_id=$app_id")
+    local build_id=$(format-veracode-app-build-id "$build_info")
+
+    echo "Downloading report files for: app_name = $app_name ; app_id = $app_id ; build_id  = $build_id"
+    echo
+    veracode-download-pdf-detailed  "$app_name" "$app_id" "$build_id"
+    veracode-download-pdf-summary   "$app_name" "$app_id" "$build_id"
+    veracode-download-xml-detailed  "$app_name" "$app_id" "$build_id"
+    veracode-download-xml-summary   "$app_name" "$app_id" "$build_id"
+    #veracode-download-pdf-3rd-party "$1"
+    echo
 
 }
 
@@ -226,7 +258,6 @@ function veracode-app-upload-file {
 function veracode-scan-call-stack {
     local build_id="$1"
     local flaw_id="$2"
-    echo "build_id=$build_id&flaw_id=$flaw_id"./
     raw_xml=$(veracode-api-invoke-v4 getcallstacks "build_id=$build_id&flaw_id=$flaw_id")
     echo "$(format-xml "$raw_xml")"
 }
@@ -292,6 +323,5 @@ function veracode-create-app   { veracode-app-create            $1; }
 function veracode-delete-app   { veracode-app-delete            $1; }
 function veracode-delete-build { veracode-app-build-delete      $1; }
 function veracode-list         { veracode-app-list                ; }
-function veracode-status       { veracode-app-build-status      $1; }
-function veracode-status-all   { veracode-app-build-status-all    ; }
+function veracode-status       { veracode-app-build-status-all  $1; }
 
