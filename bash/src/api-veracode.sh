@@ -262,6 +262,109 @@ function veracode-scan-call-stack {
     echo "$(format-xml "$raw_xml")"
 }
 
+function veracode-scan-history-download {    
+    echo    
+    local target_folder="./reports/_scan_history"
+    local download_token="${target_folder}/_download_token"
+    local latest_report="${target_folder}/_latest_report"
+    
+    # return codes
+    # 0 - report downloaded ok
+    # 1 - download token not found
+    # 2 - invalid credentials
+    # 3 - invalid token
+    # 4 - report not yet available
+
+    #cp ${latest_report} ${download_token}
+
+    if ! [[ -f "$download_token" ]]; then
+        echo "Download_token file doesn't exist, skipping check (please created it using veracode-scan-history-generate)"
+        echo
+        return 1
+    else
+        token=$(cat ${download_token})
+        local target_file="${target_folder}/${token}.csv"
+        #echo "... found download_token:  ${token}"
+
+        report=$(veracode-api-invoke-v4 downloadcustomreport token=$token)
+
+        if [[ $report =~ .*\<h2\>Request.requires.HTTP.authentication.\</h2\>.* ]] ; then
+            echo 'Error - Invalid credentials (Http authentication failed)'
+            return 2
+        else
+            if [[ $report =~ .*\<error\>Please.provide.a.valid.report.token.\<\/error\>.* ]] ; then
+                echo "Error - Invalid token: $token"
+                return 3
+            else
+
+                if [[ "$report" != "" ]]; then
+                    echo $report > ${target_file}
+                    echo "... saved report to ${target_file}"
+                    mv ${download_token} ${latest_report}
+                    return 0
+                else
+                    echo "report NOT available for token $token . Please try later"
+                    return 4
+                fi
+            fi
+        fi
+    fi
+}
+
+function veracode-scan-history-download-loop
+{
+    local number_attempts=10
+    local sleep_value=5
+    for i in `seq 1 $number_attempts`;
+    do
+        veracode-scan-history-download
+        local status="$?"
+        if [[ "$status" == "0" ]]; then
+            #echo "Report downloaded ok"
+            return 0
+        else
+            if [[ "$status" == "1" ]]; then
+                #echo "No report to download"
+                return 0
+            else
+                if [[ "$status" == "4" ]]; then
+                    echo "Waiting ${sleep_value}s for report"
+                    sleep $sleep_value
+                else
+                    #echo "Download failed"
+                    return $status
+                fi
+            fi
+        fi
+    done
+}
+
+function veracode-scan-history-generate {    
+    
+    echo    
+    local target_folder="./reports/_scan_history"
+    local download_token="${target_folder}/_download_token"
+    mkdir -p "$target_folder"    
+    
+    
+    if [[ -f "$download_token" ]]; then
+        echo "download_token file already exist, download that file first: ${download_token}"
+        echo
+    else        
+        raw_xml=$(veracode-api-invoke-v4 generatecustomreport report_identifier=scan_history)         
+        token=$(veracode-format-scan-history-token "$raw_xml")        
+        if [[ "$token" != "" ]]; then 
+            echo ${token} > $download_token
+            echo "Token value saved to ${download_token}"
+            echo "To download use: veracode-scan-history-download"
+        else
+            echo "Token generation failed"
+        fi
+    fi
+    #raw_xml=$(veracode-api-invoke-v4 generatecustomreport #report_identifier=scan_history)
+    #veracode-format-scan-history-token "$raw_xml"
+}
+
 function veracode-scan-save-call-stack {
     local app_name="$1"
     local build_id=$(veracode-scan-last-build-id "$1")

@@ -142,3 +142,10 @@ function veracode-format-file-list {
 
 }
 
+function veracode-format-scan-history-token {
+    local raw_xml=$1
+    local formatted_xml=$(format-xml "$raw_xml")
+    token=$(attribute-value "$formatted_xml" "custom_report" "token")    
+    echo $token
+}
+    
