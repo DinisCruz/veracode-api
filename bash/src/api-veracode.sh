@@ -313,8 +313,8 @@ function veracode-scan-history-download {
 
 function veracode-scan-history-download-loop
 {
-    local number_attempts=50
-    local sleep_value=5
+    local number_attempts=60
+    local sleep_value=10
     for i in `seq 1 $number_attempts`;
     do
         veracode-scan-history-download
