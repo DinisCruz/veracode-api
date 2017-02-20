@@ -328,7 +328,7 @@ function veracode-scan-history-download-loop
                 return 0
             else
                 if [[ "$status" == "4" ]]; then
-                    echo "Waiting ${sleep_value}s for report"
+                    echo "[#${i}] Waiting ${sleep_value}s for report"
                     sleep $sleep_value
                 else
                     #echo "Download failed"
