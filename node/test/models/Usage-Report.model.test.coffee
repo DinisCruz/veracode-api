@@ -15,7 +15,7 @@ describe 'models | Usage-Reports', ->
 
 
   it 'Parse_Entry', (done)->
-    report_Raw = usage_Reports.latest_Usage_Report()
+    report_Raw = usage_Reports.latest_Usage_Report_Csv()
     csv_Data   = report_Raw.split_Lines().second()
     Usage_Report.Parse_Entry csv_Data, (data)->
       data.values().assert_Is csv_Data.split(',')
@@ -28,10 +28,24 @@ describe 'models | Usage-Reports', ->
       Usage_Report.Parse_Entry "", (data)->
         assert_Is_Null data
         Usage_Report.Parse_Entry "this,\"line\",is,invalid h\"ere\"", ()->
-          console.log data
+          assert_Is_Null data
           done()
 
 
-  it 'Parse_File', ->
-    console.log '...'
+  it 'Parse_File', (done)->
+    report_Raw = usage_Reports.latest_Usage_Report_Csv()
+
+    Usage_Report.Parse_Entries report_Raw, (data)->
+      data.size().assert_Is_Bigger_Than 10
+      data.first().Account.assert_Is_String()
+      done()
+
+  it 'Parse_File (bad data)', (done)->
+    Usage_Report.Parse_Entries null, (data)->
+      assert_Is_Null data
+      Usage_Report.Parse_Entries "aaa,bbb\n1,2", (data)->
+        assert_Is_Null data
+        Usage_Report.Parse_Entries "aaa,bbb", (data)->
+          assert_Is_Null data
+          done()
 

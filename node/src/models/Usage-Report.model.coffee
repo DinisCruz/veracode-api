@@ -1,4 +1,5 @@
-csv = require('csv');
+csv   = require('csv');
+async = require 'async'
 
 class Usage_Report
 
@@ -131,10 +132,17 @@ Usage_Report.Parse_Entry = (csv_Data, callback)->
 
       callback usage_Report                   # send object create as callback
 
-Usage_Report.Parse_File = (file, callback)->
-  if not (file?.file_Not_Exists())
+Usage_Report.Parse_Entries = (data, callback)->
+
+  csv_Entries = data?.split_Lines()
+  if (not csv_Entries) or csv_Entries.empty()
     callback null
   else
-    callback {}
+    csv.parse data, columns: true, (err, data)->
+      if data.empty() or data.first()._keys().str() isnt new Usage_Report()._keys().str()               # confirm fields match
+        callback null
+      else
+        callback data
+
 
 module.exports = Usage_Report
