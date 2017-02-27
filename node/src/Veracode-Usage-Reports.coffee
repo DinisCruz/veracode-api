@@ -31,7 +31,13 @@ class Veracode_Usage_Reports
   transform_Usage_Report: =>
     raw_Data = @.latest_Usage_Report_Json()
     report = {}
-    console.log raw_Data.first()
+    fields = ['App', 'Version', 'Version ID']
+    for entry in raw_Data.take(2)
+      item = {}
+      for name in fields
+        item[name] = entry[name]
+      #console.log  item.App
+      report[item.App] = item
     return report
 
 

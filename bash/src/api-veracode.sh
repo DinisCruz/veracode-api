@@ -274,6 +274,7 @@ function veracode-scan-history-download {
     # 2 - invalid credentials
     # 3 - invalid token
     # 4 - report not yet available
+    # 5 - failed to download after x attempts
 
     #cp ${latest_report} ${download_token}
 
@@ -313,7 +314,7 @@ function veracode-scan-history-download {
 
 function veracode-scan-history-download-loop
 {
-    local number_attempts=60
+    local number_attempts=1 #60
     local sleep_value=10
     for i in `seq 1 $number_attempts`;
     do
@@ -336,6 +337,8 @@ function veracode-scan-history-download-loop
                 fi
             fi
         fi
+        echo "Error Failed to download after #{number_attempts}"
+        return 5
     done
 }
 
