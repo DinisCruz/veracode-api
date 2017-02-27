@@ -338,7 +338,7 @@ function veracode-scan-history-download-loop
             fi
         fi
         echo "Error Failed to download after #{number_attempts}"
-        return 5
+        exit 1
     done
 }
 
