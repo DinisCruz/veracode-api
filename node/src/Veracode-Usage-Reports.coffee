@@ -31,13 +31,19 @@ class Veracode_Usage_Reports
   transform_Usage_Report: =>
     raw_Data = @.latest_Usage_Report_Json()
     report = {}
-    fields = ['App', 'Version', 'Version ID']
-    for entry in raw_Data.take(2)
-      item = {}
-      for name in fields
-        item[name] = entry[name]
-      #console.log  item.App
-      report[item.App] = item
+    fields = ['App', 'App ID', 'Version', 'Version ID', 'Is Latest Pub Build']
+    for entry in raw_Data
+
+      if entry['App'] is 'myrecs-audit'
+      #if entry['Is Latest Pub Build'] is '0'
+
+        item = {}
+        for name in fields
+          item[name] = entry[name]
+
+        report[item.App] = item
+
+        console.log item
     return report
 
 
