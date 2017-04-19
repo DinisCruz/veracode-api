@@ -267,6 +267,7 @@ function veracode-scan-history-download {
     local target_folder="./reports/_scan_history"
     local download_token="${target_folder}/_download_token"
     local latest_report="${target_folder}/_latest_report"
+    local latest_report_csv="${target_folder}/_latest_report.csv"
     
     # return codes
     # 0 - report downloaded ok
@@ -300,8 +301,10 @@ function veracode-scan-history-download {
 
                 if [[ "$report" != "" ]]; then
                     echo $report > ${target_file}
-                    echo "... saved report to ${target_file}"
+                    echo "... saved original report to ${target_file}"
                     mv ${download_token} ${latest_report}
+                    cp ${target_file} ${latest_report_csv}
+                    echo "... saved updated report to ${latest_report_csv}"
                     return 0
                 else
                     echo "report NOT available for token $token . Please try later"
