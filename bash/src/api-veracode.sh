@@ -121,15 +121,19 @@ function veracode-download {
         echo
     else
 
-        local build_id=$(veracode-scan-last-build-id "$1")
+        #local build_id=$(veracode-scan-last-build-id "$1")
+
+        local build_info=$(veracode-api-invoke-v5 getbuildinfo "app_id=$app_id")
+        local build_id=$(format-veracode-app-build-id "$build_info")
+
         local target_folder="./reports/${app_name}/$build_id"
         if [  -d "$target_folder" ]; then
             echo "[Skipping] report has already been downloaded: app_name = $app_name ; app_id = $app_id ; build_id  = $build_id"
         else
-            echo "last build_id $build_id"
+            echo "   * last build_id $build_id"
 
-            veracode-download-all-files $app_name , $app_id, $build_id
-            veracode-scan-save-all_call-stacks $app_name , $app_id, $build_id
+            veracode-download-all-files "$app_name" "$app_id" "$build_id"
+            veracode-scan-save-all_call-stacks "$app_name" "$app_id" "$build_id"
 
 #           if [[ "$delete_after_download" == "delete" ]]; then
 #                echo "Deleting application $app_name with $app_id"
@@ -183,7 +187,7 @@ function veracode-download-all-files {
     local build_id="$3"
     #local app_id=$(veracode-app-id "$app_name")
 
-    local build_info=$(veracode-api-invoke-v5 getbuildinfo "app_id=$app_id")
+    #local build_info=$(veracode-api-invoke-v5 getbuildinfo "app_id=$app_id")
     #local build_id=$(format-veracode-app-build-id "$build_info")
 
     echo "Downloading report files for: app_name = $app_name ; app_id = $app_id ; build_id  = $build_id"
@@ -398,7 +402,7 @@ function veracode-scan-history-generate {
 
 function veracode-scan-save-call-stack {
     local app_name="$1"
-    local app_name="$2"
+    local build_id="$2"
 #    local build_id=$(veracode-scan-last-build-id "$1")
     local flaw_id="$3"
     local raw_xml=$(veracode-scan-call-stack $build_id $flaw_id)
@@ -427,7 +431,7 @@ function veracode-scan-save-all_call-stacks {
         echo "  - downloading $total_flaws call stacks from $app_name"
         for i in `seq 1 $total_flaws`;
         do
-            veracode-scan-save-call-stack $app_name $build_id $i
+            veracode-scan-save-call-stack "$app_name" "$build_id" "$i"
         done
     fi
     echo

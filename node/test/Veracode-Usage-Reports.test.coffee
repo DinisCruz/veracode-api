@@ -42,12 +42,12 @@ describe 'Veracode-Usage-Reports', ->
     using usage_Reports.transform_Usage_Report(), ()->
       console.log @
 
-  it.only 'create_Report_Stats', ->
+  it 'create_Report_Stats', ->
     usage_Reports.create_Report_Stats().assert_File_Exists()
                                        .load_Json()
                                        ._keys().assert_Is [ 'number_of_Scans', 'uploaded_Kb', 'analysis_Kb', 'lines_of_code', 'flaws_total', 'flaws_very_high', 'flaws_high', 'flaws_medium', 'flaws_low', 'flaws_very_low' ]
 
-  it.only 'create_Report_Targets', ->
+  it 'create_Report_Targets', ->
     targets = usage_Reports.create_Report_Targets().assert_File_Exists()
                                                    .load_Json()
     console.log targets.account.scans[0].language
