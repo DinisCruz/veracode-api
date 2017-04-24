@@ -1,6 +1,6 @@
 Veracode_Scan_Report = require '../src/Veracode-Scan-Report'
 
-describe.only 'Veracode-Usage-Reports', ->
+describe 'Veracode-Usage-Reports', ->
   scan_Report = null
 
   beforeEach ->
@@ -11,10 +11,11 @@ describe.only 'Veracode-Usage-Reports', ->
       @.base_Folder   .assert_Folder_Exists()
       @.reports_Folder.assert_Folder_Exists()
       @.parsed_Reports.assert_Folder_Exists()
+      @.scan_Reports  .assert_Folder_Exists()
 
   it 'scan_Report_Json', ->
     using scan_Report.scan_Report_Json('account'), ->
-      @.json_Parse()['detailedreport']['severity'].size().assert_Is 6
+      @['detailedreport']['severity'].size().assert_Is 6
 
   it 'scan_Report_Xml', ->
     using scan_Report.scan_Report_Xml('account'), ->
@@ -32,4 +33,9 @@ describe.only 'Veracode-Usage-Reports', ->
   it 'transform_Reports_To_Json',->
     using scan_Report.transform_Reports_To_Json(), ->
       @.size().assert_Bigger_Than 10
+
+  it.only 'create_Report_Stats',->
+    stats_File = scan_Report.create_Report_Stats()
+    stats_File.assert_File_Exists()
+    console.log stats_File.file_Contents()
 
