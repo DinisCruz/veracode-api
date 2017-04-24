@@ -112,7 +112,7 @@ function veracode-app-build-delete {
 
 function veracode-download {
     local app_name="$1"
-    delete_after_download="$2"
+    #delete_after_download="$2"
 
     local app_id=$(veracode-app-id "$app_name")
 
@@ -120,14 +120,37 @@ function veracode-download {
         echo "Error: could not resolve app with name $app_name"
         echo
     else
-        veracode-download-all-files $app_name
-        veracode-scan-save-all_call-stacks $app_name
 
-        if [[ "$delete_after_download" == "delete" ]]; then
-            echo "Deleting application $app_name with $app_id"
-            veracode-delete-app $app_id
+        local build_id=$(veracode-scan-last-build-id "$1")
+        local target_folder="./reports/${app_name}/$build_id"
+        if [  -d "$target_folder" ]; then
+            echo "[Skipping] report has already been downloaded: app_name = $app_name ; app_id = $app_id ; build_id  = $build_id"
+        else
+            echo "last build_id $build_id"
+
+            veracode-download-all-files $app_name , $app_id, $build_id
+            veracode-scan-save-all_call-stacks $app_name , $app_id, $build_id
+
+#           if [[ "$delete_after_download" == "delete" ]]; then
+#                echo "Deleting application $app_name with $app_id"
+#               veracode-delete-app $app_id
+#           fi
         fi
     fi
+}
+
+function veracode-download-latest-reports {
+    echo
+    echo "       Downloading all latest reports        "
+    echo "---------------------------------------------"
+    local all_apps=$(veracode-apps)
+    for app_name in $all_apps;
+    do
+        echo "---------------------------------------------"
+        echo "   * processing app: $app_name"
+
+        exit -1
+    done
 }
 
 function veracode-download-all-completed {
@@ -144,7 +167,7 @@ function veracode-download-all-completed {
             echo "   * current status: $app_status"
             if [[ "$app_status" == "Results Ready" ]]; then
                 echo
-                veracode-download $app_name $delete_after_download
+                veracode-download $app_name #$delete_after_download
                 echo
             else
                echo "   * skipping due to status being $app_status"
@@ -156,10 +179,12 @@ function veracode-download-all-completed {
 
 function veracode-download-all-files {
     local app_name="$1"
-    local app_id=$(veracode-app-id "$app_name")
+    local app_id="$2"
+    local build_id="$3"
+    #local app_id=$(veracode-app-id "$app_name")
 
     local build_info=$(veracode-api-invoke-v5 getbuildinfo "app_id=$app_id")
-    local build_id=$(format-veracode-app-build-id "$build_info")
+    #local build_id=$(format-veracode-app-build-id "$build_info")
 
     echo "Downloading report files for: app_name = $app_name ; app_id = $app_id ; build_id  = $build_id"
     echo
@@ -373,8 +398,9 @@ function veracode-scan-history-generate {
 
 function veracode-scan-save-call-stack {
     local app_name="$1"
-    local build_id=$(veracode-scan-last-build-id "$1")
-    local flaw_id="$2"
+    local app_name="$2"
+#    local build_id=$(veracode-scan-last-build-id "$1")
+    local flaw_id="$3"
     local raw_xml=$(veracode-scan-call-stack $build_id $flaw_id)
 
     if [[ $raw_xml =~ .*\<error\> ]]; then
@@ -390,6 +416,8 @@ function veracode-scan-save-call-stack {
 
 function veracode-scan-save-all_call-stacks {
     local app_name="$1"
+    local app_id="$2"
+    local build_id="$3"
     local total_flaws=$(veracode-scan-total-flaws $app_name)
     echo "Downloading call-stacks"
     echo
@@ -399,7 +427,7 @@ function veracode-scan-save-all_call-stacks {
         echo "  - downloading $total_flaws call stacks from $app_name"
         for i in `seq 1 $total_flaws`;
         do
-            veracode-scan-save-call-stack $app_name $i
+            veracode-scan-save-call-stack $app_name $build_id $i
         done
     fi
     echo
