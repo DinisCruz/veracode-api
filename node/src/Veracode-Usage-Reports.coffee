@@ -4,9 +4,9 @@ require 'fluentnode'
 
 Number::to_Decimal = -> Number.parseFloat(@.toFixed(4))
 
-Object::fix_Numbers = ->                    # to address this issue https://github.com/DinisCruz/Book_Software_Quality/issues/90
-  for key,value of @ when is_Number(value)
-    @[key] = value.to_Decimal()
+fix_Numbers = (target)->                    # to address this issue https://github.com/DinisCruz/Book_Software_Quality/issues/90
+  for key,value of target when is_Number(value)
+    target[key] = value.to_Decimal()
 
 class Veracode_Usage_Reports
   constructor: ->
@@ -83,7 +83,7 @@ class Veracode_Usage_Reports
         @.flaws_low       += Number(entry['Low Flaws'       ])
         @.flaws_very_low  += Number(entry['Very Low Flaws'  ])
 
-    stats.fix_Numbers()
+    fix_Numbers(stats)
 
     stats.json_Pretty().save_As target_File
     return target_File

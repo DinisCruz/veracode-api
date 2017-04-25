@@ -34,8 +34,15 @@ describe 'Veracode-Usage-Reports', ->
     using scan_Report.transform_Reports_To_Json(), ->
       @.size().assert_Bigger_Than 10
 
-  it.only 'create_Report_Stats',->
-    stats_File = scan_Report.create_Report_Stats()
-    stats_File.assert_File_Exists()
-    console.log stats_File.file_Contents()
+  it 'create_Report_Stats',->
+    using scan_Report.create_Report_Stats()
+                     .assert_File_Exists()
+
+  it.only 'create_Report_Flaws',->
+    scan_Report.create_Report_Flaws()
+               .assert_File_Exists()
+
+  it.only 'create_Report_Flaws_Stats',->
+    scan_Report.create_Report_Flaws_Stats()
+              .assert_File_Exists()
 
