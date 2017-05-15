@@ -35,14 +35,14 @@ describe 'Veracode-Usage-Reports', ->
       @.size().assert_Bigger_Than 10
 
   it 'create_Report_Stats',->
-    using scan_Report.create_Report_Stats()
-                     .assert_File_Exists()
+    scan_Report.create_Report_Stats()
+               .assert_File_Exists()
 
-  it.only 'create_Report_Flaws',->
+  it 'create_Report_Flaws',->
     scan_Report.create_Report_Flaws()
                .assert_File_Exists()
 
-  it.only 'create_Report_Flaws_Stats',->
+  it 'create_Report_Flaws_Stats',->
     scan_Report.create_Report_Flaws_Stats()
               .assert_File_Exists()
 

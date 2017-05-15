@@ -51,7 +51,7 @@ class Veracode_Usage_Reports
 
         report[item.App] = item
 
-        console.log item
+        #console.log item
     return report
 
 
@@ -110,7 +110,7 @@ class Veracode_Usage_Reports
           @.language        = entry['Language'        ]
         @.scans.add data
 
-      console.log targets[entry.App]
+      #console.log targets[entry.App]
     targets.json_Pretty().save_As target_File
     return target_File
 

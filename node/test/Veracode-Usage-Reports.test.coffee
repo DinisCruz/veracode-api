@@ -40,7 +40,7 @@ describe 'Veracode-Usage-Reports', ->
   it 'transform_Usage_Report', ->
     #console.log('\u001Bc')
     using usage_Reports.transform_Usage_Report(), ()->
-      console.log @
+      #console.log @
 
   it 'create_Report_Stats', ->
     usage_Reports.create_Report_Stats().assert_File_Exists()
@@ -50,6 +50,6 @@ describe 'Veracode-Usage-Reports', ->
   it 'create_Report_Targets', ->
     targets = usage_Reports.create_Report_Targets().assert_File_Exists()
                                                    .load_Json()
-    console.log targets.account.scans[0].language
-    console.log targets
+    #console.log targets.account.scans[0].language
+    #console.log targets
 
