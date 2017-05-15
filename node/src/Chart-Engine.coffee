@@ -1,16 +1,14 @@
-require 'fluentnode'
-ChartjsNode = require('chartjs-node');
+Buffer::save_As = (file_Path)->
+  fs        = require('fs')
+  out       = fs.createWriteStream(file_Path);
+  out.write(@);
+  file_Path
+
 jsdom       = require('jsdom')
 
 class Chart_Engine
 
   constructor: ->
-#    @.jsdom_DefaultDocumentFeatures =
-#      FetchExternalResources: [ 'script' ]
-#      #ProcessExternalResources: ["script"],
-#      ProcessExternalResources: true
-#
-
     @.document = null
     @.window   = null
 
@@ -19,18 +17,16 @@ class Chart_Engine
 
   save_Chart: (callback)=>
     save = (blob) =>
-      fs        = require('fs')
-      file_Path = __dirname + '/chart.png'
-      out       = fs.createWriteStream(file_Path);
-      out.write(jsdom.blobToBuffer(blob));
+      jsdom.blobToBuffer blob
+           .save_As __dirname.path_Combine 'chart.png'
       callback()
 
-    @.canvas.toBlob save, "image/png"
+    @.canvas.toBlob save                  #, "image/png"
 
 
   setup_Jsdom: (callback)=>
     html    = '<canvas id="myChart" width="500" height="500"></canvas>>'
-    scripts = [ 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.2/Chart.js' ]
+    scripts = [ 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.2/Chart.js' ]      # don't like this, online dependency
 
     jsdom.env html, scripts, (err, window) =>
       @.window        = window
@@ -38,9 +34,9 @@ class Chart_Engine
       #@.chart         = require 'chart.js'         # using local copy of chart.js is not working so for now load it from the CDN
       global.window   = @.window                    # need to set these values since jsdom makes calls to window.* internally
       global.document = @.document
-      @.chart         = @.window.Chart
-      @.canvas = @.document.getElementById('myChart')
-      @.ctx    = @.canvas.getContext('2d')
+      @.chart         = @.window  .Chart
+      @.canvas        = @.document.getElementById('myChart')
+      @.ctx           = @.canvas  .getContext('2d')
 
       callback()
 
@@ -67,31 +63,35 @@ class Chart_Engine
           pointHoverBorderColor: "rgba(179,181,198,1)",
           data: [15, 29, 10, 11, 26, 15, 40,11]
         }, {
-        label: 'asdaaaaaaa'
-        data: [10,22,13,4,25,22,33,11]
-        backgroundColor: "rgba(255,0,0,0.5)"
-        borderColor: 'green'
+          label           : 'Red and Green'
+          data            : [10,22,13,4,25,22,33,11]
+          backgroundColor : "rgba(255,0,0,0.5)"
+          borderColor     : 'green'
+          fill            : true
+          steppedLine     : true
+          borderWidth     : 2
+
         }, {
-        label: '# of Votes'
-        data: [ 12, 13, 3, 5, 1, 12 ,22, 33]
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.2)'
-          'rgba(54, 162, 235, 0.2)'
-          'rgba(255, 206, 86, 0.2)'
-          'rgba(75, 192, 192, 0.2)'
-          'rgba(153, 102, 255, 0.2)'
-          'rgba(255, 159, 64, 0.2)'
-        ]
-        borderColor: [
-          'rgba(255,99,132,1)'
-          'rgba(54, 162, 235, 1)'
-          'rgba(255, 206, 86, 1)'
-          'rgba(75, 192, 192, 1)'
-          'rgba(153, 102, 255, 1)'
-          'rgba(255, 159, 64, 1)'
-        ]
-        borderWidth: 1
-      } ]
+          label: '# of Votes'
+          data: [ 12, 13, 3, 5, 1, 12 ,22, 33]
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.2)'
+            'rgba(54, 162, 235, 0.2)'
+            'rgba(255, 206, 86, 0.2)'
+            'rgba(75, 192, 192, 0.2)'
+            'rgba(153, 102, 255, 0.2)'
+            'rgba(255, 159, 64, 0.2)'
+          ]
+          borderColor: [
+            'rgba(255,99,132,1)'
+            'rgba(54, 162, 235, 1)'
+            'rgba(255, 206, 86, 1)'
+            'rgba(75, 192, 192, 1)'
+            'rgba(153, 102, 255, 1)'
+            'rgba(255, 159, 64, 1)'
+          ]
+          borderWidth: 1
+        } ]
     options:
       responsive: false
       animation: false
