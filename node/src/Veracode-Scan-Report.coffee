@@ -15,6 +15,9 @@ class Veracode_Scan_Report
     @.scan_Reports   = @.reports_Folder   .path_Combine '_scan_Reports'
     @.parsed_Reports = @.scan_Reports     .path_Combine 'parsed_Xml'
 
+    @.path_Flaws       = @.scan_Reports.path_Combine 'flaws.json'
+    @.path_Flaws_Stats = @.scan_Reports.path_Combine 'flaws-stats.json'
+
 
     if @.reports_Folder.folder_Exists()       # if there is a reports folder, then create the other folders (in case they don't exist)
       @.scan_Reports  .folder_Create()
@@ -150,8 +153,8 @@ class Veracode_Scan_Report
 
 
   create_Report_Flaws_Stats: ()=>
-    flaws_File  = @.scan_Reports.path_Combine 'flaws.json'
-    target_File = @.scan_Reports.path_Combine 'flaws-stats.json'
+    flaws_File  = @.path_Flaws        #@.scan_Reports.path_Combine 'flaws.json'
+    target_File = @.path_Flaws_Stats  #@.scan_Reports.path_Combine 'flaws-stats.json'
     flaws_Stats =
       flaw_Categories       : {}
       flaw_Names            : []

@@ -8,17 +8,25 @@ jsdom       = require('jsdom')
 
 class Chart_Engine
 
-  constructor: ->
-    @.document = null
-    @.window   = null
+  constructor: (chart_Data)->
+    @.document   = null
+    @.window     = null
+    @.chart_Data = @.chart_Data || null
 
-  create_Chart: =>
-    new @.chart @.ctx, @.test_Data()      # will store chart in @.canvas
+  create_Chart: (chart_Data, target_File, callback)=>
+    @.chart_Data = chart_Data
+    @.setup_Jsdom =>
+      @.new_Chart()
+      @.save_Chart target_File,->
+        callback target_File
 
-  save_Chart: (callback)=>
+  new_Chart: ()=>
+    new @.chart @.ctx, @.chart_Data       # will store chart in @.canvas
+
+  save_Chart: (target, callback)=>
     save = (blob) =>
       jsdom.blobToBuffer blob
-           .save_As __dirname.path_Combine 'chart.png'
+           .save_As target
       callback()
 
     @.canvas.toBlob save                  #, "image/png"
@@ -40,6 +48,35 @@ class Chart_Engine
 
       callback()
 
+
+  bar_Chart: ()->
+    data_Template =
+      type: 'bar'
+      data:
+        labels: []
+        datasets: [ {
+          label           :'"Test Chart',
+          backgroundColor : '#004488'
+          borderColor     : '#C0C0C0',
+          data: []
+        }, ]
+      options:
+        responsive: false
+        animation: false
+        scales: yAxes: [ { ticks: beginAtZero: true } ]
+    return {
+        data   : data_Template
+        add_Bar: (name, value)->
+          data_Template.data.labels.push(name)
+          data_Template.data.datasets[0].data.push value
+        color: (value)->
+          data_Template.data.datasets[0].backgroundColor = value
+        border: (value)->
+          data_Template.data.datasets[0].borderColor = value
+        title: (value)->
+          data_Template.data.datasets[0].label = value
+
+      }
 
 
   test_Data: ()=>

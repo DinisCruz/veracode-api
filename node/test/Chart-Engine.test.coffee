@@ -1,7 +1,8 @@
+require 'fluentnode'
+
 Chart_Engine = require '../src/Chart-Engine'
 
-
-describe.only 'Chart-Engine', ->
+describe 'Chart-Engine', ->
   chart_Engine = null
 
   beforeEach ->
@@ -13,17 +14,21 @@ describe.only 'Chart-Engine', ->
       assert_Is_Null @.document
       assert_Is_Null @.window
 
-  it 'create_Chart', (done)->
+  it 'new_Chart', (done)->
     using chart_Engine, ->
       @.setup_Jsdom =>
-        @.create_Chart()
+        @.new_Chart()
         done()
 
   it 'save_Chart', (done)->
+    target_File = __dirname.path_Combine 'chart.png'
+    target_File.file_Delete()
     using chart_Engine, ->
+      @.chart_Data = @.test_Data()
       @.setup_Jsdom =>
-        @.create_Chart()
-        @.save_Chart ->
+        @.new_Chart()
+        @.save_Chart target_File,->
+          target_File.assert_File_Exists()
           done()
 
   it 'setup_Jsdom', (done)->
@@ -34,6 +39,26 @@ describe.only 'Chart-Engine', ->
         @.canvas     .assert_Is {}
         @.ctx._keys().assert_Is [ 'canvas', 'createPattern', 'drawImage' ]
         done()
+
+  it 'create_Bar_Chart', (done)->
+
+    using chart_Engine, ->
+      bar_Chart = using @.bar_Chart(), ->
+        @.add_Bar 'aaa', 12
+        @.add_Bar 'bbb', 22
+        @.add_Bar 'ccc', 11
+        @.color '#226622'
+        @.border 'black'
+        @.title 'A test chart'
+        return @
+
+
+      target_File = __dirname.path_Combine '../src/bar_chart.png'
+      chart_Data  = bar_Chart.data
+      @.create_Chart chart_Data, target_File, ->
+        target_File.assert_File_Exists()#.file_Delete().assert_Is_True()
+        done()
+
 
   it 'test_Data', ->
     using chart_Engine, ->
